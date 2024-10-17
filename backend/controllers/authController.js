@@ -4,7 +4,7 @@ const { validationResult } = require("express-validator");
 const User = require("../models/user");
 // const nodemailer = require("nodemailer");
 
-// Function to handle user signup
+
 exports.signup = async (req, res, next) => {
   // const errors = validationResult(req);
   // if (!errors.isEmpty()) {
@@ -15,7 +15,7 @@ exports.signup = async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
   try {
-    // Check if the user already exists
+    // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
       const error = new Error("User already exists");
@@ -23,7 +23,7 @@ exports.signup = async (req, res, next) => {
       throw error;
     }
 
-    // Create a new user instance
+    // Create  new user instance
     user = new User({
       name,
       email: email.toLowerCase(),
@@ -34,12 +34,12 @@ exports.signup = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
-    // Save the user to the database
+    // Save  user to the database
     await user.save();
 
     // console.log(user.id);
 
-    // Create and return a JWT token
+    // Create and return token
     const payload = {
       user: {
         id: user.id,
@@ -52,18 +52,18 @@ exports.signup = async (req, res, next) => {
       // { expiresIn: "1h" },
       (err, token) => {
         if (err) {
-          next(err); // Pass error to error handling middleware
+          next(err); 
         } else {
           res.json({ token, userId: user.id });
         }
       }
     );
   } catch (err) {
-    next(err); // Pass error to error handling middleware
+    next(err); 
   }
 };
 
-// Function to handle user login
+
 exports.login = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -74,7 +74,7 @@ exports.login = async (req, res, next) => {
   console.log(req.body);
 
   try {
-    // Check if the user exists
+    // Check if  user exists
     let user = await User.findOne({ email });
     if (!user) {
       const error = new Error("Invalid credentials");
@@ -90,7 +90,7 @@ exports.login = async (req, res, next) => {
       throw error;
     }
 
-    // Create and return a JWT token
+    // Create and return a token
     const payload = {
       user: {
         id: user.id,
@@ -103,14 +103,14 @@ exports.login = async (req, res, next) => {
       // { expiresIn: "1h" },
       (err, token) => {
         if (err) {
-          next(err); // Pass error to error handling middleware
+          next(err); 
         } else {
           res.json({ token, userId: user.id });
         }
       }
     );
   } catch (err) {
-    next(err); // Pass error to error handling middleware
+    next(err); 
   }
 };
 
