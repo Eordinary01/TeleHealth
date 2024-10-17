@@ -10,7 +10,6 @@ const chatSchema = new Schema(
     },
     title: {
       type: String,
-      // required: true,
     },
     messages: [
       {
@@ -26,6 +25,15 @@ const chatSchema = new Schema(
         timestamp: {
           type: Date,
           default: Date.now,
+        },
+        image: {
+          data: Buffer,
+          contentType: String,
+        },
+        imageName: {
+          // data: Buffer,
+          type: String,
+          // contentType: String,
         },
       },
     ],

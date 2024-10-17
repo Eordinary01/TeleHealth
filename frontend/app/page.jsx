@@ -8,7 +8,7 @@ import AIconsultant from "@/components/AIconsultant";
 export default function page() {
   return (
     <div className={classes.container}>
-      <Header />
+      {/* <Header /> */}
       <Main />
       <Footer />
       <AIconsultant />
