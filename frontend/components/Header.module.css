@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    padding: 0 2vw;
+    position: relative;
+    z-index: 1;
+    background-color: #fff;
+    box-shadow: 0 0px 2px rgba(0, 0, 0, 0.2);
+    font-family: "Inter";
+}
+
+.header > div {
+    display: flex;
+    justify-content: center;
+    gap: 2vw;
+    flex-grow: 1;
+    font-size: 1vw;
+}
+
+.header > div > a {
+    text-decoration: none;
+    color: #00A6FF;
+    font-weight: 500;
+}
+
+.header > div > a:hover {
+    color: red;
+}
+
+.button {
+    font-family: "Inter";
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    background-color: #EEEEEE;box-shadow: 0 0px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 1024px) {
+    .header > div {
+        font-size: 16px;
+        gap: 2vw;
+    }
+
+    .button {
+        padding: 10px 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        padding: 10px 5vw;
+        height: auto;
+    }
+
+    .header > div {
+        flex-wrap: wrap;
+        gap: 1.5vw;
+    }
+
+    .button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header > div {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .header > div > a {
+        font-size: 14px;
+    }
+
+    .button {
+        padding: 10px 20px;
+        font-size: 14px;
+        width: 100%;
+    }
+}
+
