@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/user");
 exports.chat = async (req, res) => {
   const { message } = req.body;
   console.log("apiKey", process.env.API_KEY);

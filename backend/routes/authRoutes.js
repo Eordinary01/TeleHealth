@@ -4,8 +4,6 @@ const router = express.Router();
 const authController = require("../controllers/authController");
 const isAuth = require("../middleware/is-auth");
 
-router.post("/otp", authController.optGenerte);
-
 // Route: POST /api/auth/signup
 router.post(
   "/signup",
@@ -24,6 +22,12 @@ router.post(
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters long"),
+    body("role")
+      .not()
+      .isEmpty()
+      .withMessage("Role is required")
+      .isIn([ "user", "patient"]) // Valid roles: 'admin', 'user', 'patient'
+      .withMessage("Invalid role, must be one of: user, patient"),
   ],
   authController.signup
 );
@@ -43,27 +47,27 @@ router.post(
 );
 
 // Route: POST /api/auth/forgot-password
-router.post(
-  "/forgot-password",
-  [
-    body("email")
-      .isEmail()
-      .normalizeEmail()
-      .withMessage("Valid email is required"),
-  ],
-  authController.forgotPassword
-);
+// router.post(
+//   "/forgot-password",
+//   [
+//     body("email")
+//       .isEmail()
+//       .normalizeEmail()
+//       .withMessage("Valid email is required"),
+//   ],
+//   authController.forgotPassword
+// );
 
 // Route: POST /api/auth/reset-password
-router.put(
-  "/reset-password",
-  [
-    body("newPassword")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
-  ],
-  isAuth,
-  authController.resetPassword
-);
+// router.put(
+//   "/reset-password",
+//   [
+//     body("newPassword")
+//       .isLength({ min: 6 })
+//       .withMessage("Password must be at least 6 characters long"),
+//   ],
+//   isAuth,
+//   authController.resetPassword
+// );
 
 module.exports = router;
