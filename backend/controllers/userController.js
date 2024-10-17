@@ -27,13 +27,13 @@ exports.updateUserProfile = async (req, res, next) => {
       throw error;
     }
 
-    user.name = name || user.name; // Update only if provided
-    user.email = email || user.email; // Update only if provided
+    user.name = name || user.name;
+    user.email = email || user.email;
 
     user = await user.save();
 
     res.status(201).json(user);
   } catch (err) {
-    next(err); // Pass error to error handling middleware
+    next(err);
   }
 };
