@@ -65,6 +65,8 @@ app.use(cors());
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/aiChatBot");
+const appointmentRoutes = require("./routes/appointmentRoutes");
+const doctorRoutes = require("./routes/doctorRoutes");
 
 app.get('/',(req,res)=>{
   res.json({message:"Hello Dev...."})
@@ -74,6 +76,8 @@ app.get('/',(req,res)=>{
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/chat", chatRoutes);
+app.use("/appointment",appointmentRoutes);
+app.use("/doctor",doctorRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
