@@ -6,5 +6,6 @@ const chatController = require("../controllers/chatController");
 
 // Route: GET /api/user/profile
 router.post("/", chatController.chat);
+router.get("/:chatId", chatController.getChat);
 
 module.exports = router;

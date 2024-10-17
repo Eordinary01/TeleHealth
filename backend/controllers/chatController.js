@@ -1,11 +1,12 @@
 const Chat = require("../models/chat");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
+const path = require("path");
 
-function fileToGenerativePart(path, mimeType) {
+function fileToGenerativePart(filePath, mimeType) {
   return {
     inlineData: {
-      data: Buffer.from(fs.readFileSync(path)).toString("base64"),
+      data: fs.readFileSync(filePath).toString("base64"),
       mimeType,
     },
   };
@@ -29,7 +30,16 @@ async function generateAITitle(messages) {
 }
 
 exports.chat = async (req, res) => {
-  const { message, userId, imagePath, chatId } = req.body;
+  const { message, userId, chatId } = req.body;
+  const imageFile = req.file;
+  console.log("imageFile", imageFile);
+
+  console.log("Received request:", {
+    message,
+    userId,
+    chatId,
+    imageFile: imageFile?.originalname,
+  });
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
@@ -44,17 +54,38 @@ exports.chat = async (req, res) => {
     } else {
       chatHistory = new Chat({
         userId,
-        title: "Untitled Chat", // Temporary title
+        title: "Untitled Chat",
         messages: [INITIAL_CONTEXT],
       });
     }
 
     let imageResult = null;
-    if (imagePath) {
+    let imagePart = null;
+    if (imageFile) {
       const prompt = "Describe how this product might be manufactured.";
-      const imagePart = fileToGenerativePart(imagePath, "image/jpeg");
-      const imageResponse = await model.generateContent([prompt, imagePart]);
+      const imagePath = path.join(
+        __dirname,
+        "..",
+        "images",
+        imageFile.filename
+      );
+      imagePart = fileToGenerativePart(imagePath, imageFile.mimetype);
+      const imageResponse = await model.generateContent([message, imagePart]);
       imageResult = imageResponse.response.text();
+
+      // Save image to chat history
+      chatHistory.messages.push({
+        role: "user",
+        content: "Image uploaded",
+        image: {
+          data: fs.readFileSync(imagePath),
+          contentType: imageFile.mimetype,
+        },
+        imageName: imagePath,
+      });
+
+      // Clean up the uploaded file
+      fs.unlinkSync(imagePath);
     }
 
     const chat = model.startChat({
@@ -87,8 +118,11 @@ exports.chat = async (req, res) => {
     };
 
     if (imageResult) {
-      response.imageAnalysis = imageResult;
+      // response.imageAnalysis = imageResult;
+      response.chatReply = imageResult;
     }
+
+    console.log("Sending response:", response);
 
     res.status(200).json(response);
   } catch (error) {
@@ -96,6 +130,7 @@ exports.chat = async (req, res) => {
     res.status(500).send("Error processing request");
   }
 };
+
 exports.getChatHistory = async (req, res) => {
   const { userId } = req.params;
 
@@ -122,6 +157,9 @@ exports.getChat = async (req, res) => {
     if (!chat) {
       return res.status(404).send("Chat not found");
     }
+    chat.messages.shift();
+    console.log("chat", chat);
+
     res.status(200).json(chat);
   } catch (error) {
     console.error("Error retrieving chat:", error);
