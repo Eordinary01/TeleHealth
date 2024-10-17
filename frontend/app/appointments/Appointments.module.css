@@ -1,0 +1,111 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: "Arial", sans-serif;
+}
+
+.header {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.error {
+  color: #e53e3e;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.tableHeader {
+  text-align: left;
+  padding: 1rem;
+  background-color: #f7fafc;
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.appointmentRow {
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.appointmentRow:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.cell {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.pending {
+  color: #d69e2e;
+}
+
+.confirmed {
+  color: #38a169;
+}
+
+.cancelled {
+  color: #e53e3e;
+}
+
+.noAppointments {
+  text-align: center;
+  color: #718096;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .table,
+  .appointmentRow,
+  .cell {
+    display: block;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .appointmentRow {
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .cell {
+    padding: 0.75rem 1rem;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  .cell:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: 600;
+    color: #4a5568;
+  }
+}

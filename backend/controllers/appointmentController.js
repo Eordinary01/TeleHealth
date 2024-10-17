@@ -1,5 +1,6 @@
 const Appointment = require("../models/appointment");
 const Doctor = require("../models/doctor");
+const User = require("../models/user");
 
 exports.createAppointment = async (req, res) => {
   try {
@@ -14,7 +15,6 @@ exports.createAppointment = async (req, res) => {
 
     await appointment.save();
 
-    //adding the app id to the doc array 
     await Doctor.findByIdAndUpdate(doctorId, {
       $push: { appointments: appointment._id },
     });
@@ -27,24 +27,23 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
-exports.getAppointments = async (req, res) => {
+exports.getAppointments = async (req, res, next) => {
   try {
-    const { userId, role } = req.user;
-    let appointments;
+    const appointments = await Appointment.find()
+      .populate({
+        path: "doctor",
+        populate: {
+          path: "user",
+          model: "User",
+        },
+      })
+      .populate("patient");
 
-    if (role === "patient") {
-      appointments = await Appointment.find({ patient: userId }).populate(
-        "doctor"
-      );
-    } else {
-      appointments = await Appointment.find({ doctor: userId }).populate(
-        "patient"
-      );
-    }
-    res.json(appointments);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching Appointments..", error: error.message });
+    console.log("Fetched Appointments:", appointments);
+
+    res.status(200).json(appointments);
+  } catch (err) {
+    console.error("Error fetching appointments:", err);
+    next(err);
   }
 };

@@ -26,7 +26,7 @@ router.post(
       .not()
       .isEmpty()
       .withMessage("Role is required")
-      .isIn([ "user", "patient"]) 
+      .isIn([ "doctor", "patient"]) 
       .withMessage("Invalid role, must be one of: user, patient"),
   ],
   authController.signup

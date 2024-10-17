@@ -42,6 +42,8 @@ exports.signup = async (req, res, next) => {
     const payload = {
       user: {
         id: user.id,
+        name:user.name,
+        role:user.role,
       },
     };
 

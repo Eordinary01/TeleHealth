@@ -6,6 +6,6 @@ const isAuth = require('../middleware/is-auth');
 
 router.post('/create',isAuth,appointmentController.createAppointment);
 
-router.get('/',isAuth,appointmentController.getAppointments);
+router.get('/',appointmentController.getAppointments);
 
 module.exports = router;
