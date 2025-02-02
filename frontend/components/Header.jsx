@@ -1,44 +1,33 @@
-'use client'
-import React, { useState, useEffect } from "react";
+"use client";
+
+import React from "react";
 import Link from "next/link";
 import classes from "./Header.module.css";
-import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext"; 
+import doctorImage from "../assets/images.jpg"
+import Image from "next/image";
 
 function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // Check for token in localStorage (auth persistence)
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token); // If token exists, set to true
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-  };
+  const { isLoggedIn, logout, user } = useAuth();
 
   return (
     <header className={classes.header}>
-      <img src="" alt="Logo" />
+      <Image src={doctorImage} alt="Logo" height={62} width={62} />
 
       <div>
-        <Link href="/">Home</Link>
-<<<<<<< HEAD
-        <Link href="/appointments">Appointments</Link>
-        <Link href="/doctorCard">Doctor Availability</Link>
-        <Link href="/check-symptoms">Check Symptoms</Link>
-        <Link href="/health-records">Health Records</Link>
-        <Link href="/emergency">Emergency</Link>
-        <Link href="/support">Support</Link>
-=======
-        <a href="">Virtual Consultation</a>
-        <a href="">Doctor availability</a>
-        <Link href="/chat">Check symptoms</Link>
-        <a href="">Health records</a>
-        <a href="">Emergency</a>
-        <a href="">Support</a>
->>>>>>> 8cd8aad93cabc2f6682fbe95c1f065ea8923eebc
+        {isLoggedIn ? (
+          <>
+            <Link href="/">Home</Link>
+            <Link href="/appointments">Appointments</Link>
+            {user?.role !== "doctor" && (
+              <Link href="/doctorCard">Doctor Availability</Link>
+            )}
+            <Link href="/chat">Check Symptoms</Link>
+          </>
+        ) : (
+          // Placeholder message or empty div for unauthenticated users
+          <span>Please log in to access the application</span>
+        )}
       </div>
 
       <div>
@@ -47,7 +36,7 @@ function Header() {
             <button className={classes.button}>Log In/Sign Up</button>
           </Link>
         ) : (
-          <button onClick={handleLogout} className={classes.button}>
+          <button onClick={logout} className={classes.button}>
             Logout
           </button>
         )}

@@ -2,211 +2,118 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const User = require("../models/user");
+const Doctor = require("../models/doctor");
 
 // Function to handle user signup
-exports.signup = async (req, res, next) => {
+exports.signup = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  console.log(req.body);
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, specialty } = req.body;
 
   try {
     // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      const error = new Error("User already exists");
-      error.statusCode = 400;
-      throw error;
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    // Create  new user instance
-    user = new User({
+    // Create new user instance
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
       name,
       email: email.toLowerCase(),
-      password,
+      password: hashedPassword,
       role,
     });
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    // Save  user to the database
+    // Save user to the database
     await user.save();
 
-    // console.log(user.id);
+    // If role is doctor, create a doctor profile
+    if (role === "doctor") {
+      const doctor = new Doctor({
+        user: user._id,
+        specialty: specialty || "",
+      });
+      await doctor.save();
+    }
 
-    // Create and return token
-    const payload = {
-      user: {
-        id: user.id,
-        name:user.name,
-        role:user.role,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      // { expiresIn: "1h" },
-      (err, token) => {
-        if (err) {
-          next(err); 
-        } else {
-          res.json({ token, userId: user.id });
-        }
-      }
-    );
-  } catch (err) {
-    next(err); 
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.status(500).json({ message: "Error during registration" });
   }
 };
 
-
-exports.login = async (req, res, next) => {
+// Function to handle user login
+exports.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { email, password } = req.body;
-  console.log(req.body);
 
   try {
-    // Check if  user exists
-    let user = await User.findOne({ email });
+    // Check if user exists
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      const error = new Error("Invalid credentials");
-      error.statusCode = 400;
-      throw error;
+      return res.status(400).json({ message: "User Does not exist!!" });
     }
 
     // Validate the password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      const error = new Error("Invalid Password");
-      error.statusCode = 400;
-      throw error;
+      return res.status(400).json({ message: "Invalid password" });
     }
 
-    // Create and return a token
-    const payload = {
-      user: {
-        id: user.id,
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        email: user.email,
+        role: user.role,
+        name:user.name
       },
-    };
-
-    jwt.sign(
-      payload,
       process.env.JWT_SECRET,
-      // { expiresIn: "1h" },
-      (err, token) => {
-        if (err) {
-          next(err); 
-        } else {
-          res.json({ token, userId: user.id });
-        }
-      }
+      { expiresIn: "7d" }
     );
-  } catch (err) {
-    next(err); 
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Error during login" });
   }
 };
 
-// exports.forgotPassword = async (req, res, next) => {
-//   // Extract validation errors from the request
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({ errors: errors.array() });
-//   }
+// Function to verify token and return user data
+exports.verifyToken = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("name email role");
 
-//   const { email } = req.body;
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-//   try {
-//     // Check if the user exists
-//     console.log(email);
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       const error = new Error("User with this email does not exist");
-//       error.statusCode = 404;
-//       throw error;
-//     }
-
-//     res.status(200).json({ message: "Password reset link sent to your email" });
-//     // console.log(process.env.FRONTENDLINK);
-
-//     return transporter.sendMail({
-//       from: "cleve.klein78@ethereal.email",
-//       to: email,
-//       subject: "Reset Password Link!",
-//       // text: `Hello Prakhar, your account has been created successfully. Please log in now.`,
-//       html: `<h1>Reset password links successfully sent!</h1>
-//       <p>Click on this <a href="${process.env.FRONTENDLINK}/${user._id}">link</a> to change password.</p>`,
-//     });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-// // Function to handle reset password
-// exports.resetPassword = async (req, res, next) => {
-//   // Extract validation errors from the request
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({ errors: errors.array() });
-//   }
-
-//   const { currentPassword, newPassword } = req.body;
-//   console.log(req.body);
-
-//   try {
-//     // Find the user by req.userId
-//     const userId = req.body.userId || req.userId;
-//     console.log(`User ID: ${userId}`);
-
-//     const user = await User.findById(userId);
-
-//     if (!user) {
-//       const error = new Error("User not found");
-//       error.statusCode = 404;
-//       throw error;
-//     }
-
-//     // console.log(`User found: ${user}`);
-//     console.log(`User password: ${user.password}`);
-
-//     if (!user.password) {
-//       const error = new Error("User password is undefined");
-//       error.statusCode = 400;
-//       throw error;
-//     }
-
-//     // Verify the old password
-//     const isMatch = await bcrypt.compare(currentPassword, user.password);
-//     if (!isMatch) {
-//       const error = new Error("Old password is incorrect");
-//       error.statusCode = 400;
-//       throw error;
-//     }
-
-//     // Check if the new password is the same as the old password
-//     const isSamePassword = await bcrypt.compare(newPassword, user.password);
-//     if (isSamePassword) {
-//       const error = new Error(
-//         "You have the same password as before. Choose a new password."
-//       );
-//       error.statusCode = 400;
-//       throw error;
-//     }
-
-//     // Hash the new password and save it to the user's document
-//     const salt = await bcrypt.genSalt(10);
-//     user.password = await bcrypt.hash(newPassword, salt);
-//     await user.save();
-
-//     res.status(200).json({ message: "Password has been reset successfully" });
-//   } catch (err) {
-//     next(err); // Pass error to error handling middleware
-//   }
-// };
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(500).json({ message: "Error while verifying token" });
+  }
+};

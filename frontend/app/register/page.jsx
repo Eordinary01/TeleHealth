@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext'; 
 import styles from './Register.module.css';
 
 function Register() {
@@ -10,46 +11,64 @@ function Register() {
     email: '',
     password: '',
     role: 'patient',
-    specialty: '', // Add specialty to the state
+    specialty: '',
   });
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { register } = useAuth(); 
 
   const { name, email, password, role, specialty } = formData;
 
   const handleChange = (e) => {
+    setError('');
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const validateForm = () => {
+    if (!name.trim()) {
+      setError('Name is required');
+      return false;
+    }
+    if (!email.trim()) {
+      setError('Email is required');
+      return false;
+    }
+    if (!password.trim()) {
+      setError('Password is required');
+      return false;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return false;
+    }
+    if (role === 'doctor' && !specialty.trim()) {
+      setError('Specialty is required for doctors');
+      return false;
+    }
+    return true;
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
     setError('');
     setSuccessMessage('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8080/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      
+      
+      setSuccessMessage('Registration successful! Redirecting...');
+      await register(formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.errors ? data.errors[0].msg : 'Registration failed');
-      }
-
-      console.log('Registration successful:', data);
-      setSuccessMessage(data.message || 'Registration successful!');
-
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000); 
+      
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,22 +115,25 @@ function Register() {
           <option value="doctor">Doctor</option>
         </select>
 
-        {/* Conditional rendering for doctor fields */}
         {role === 'doctor' && (
-          <div>
-            <input
-              className={styles.input}
-              type="text"
-              name="specialty"
-              placeholder="Specialty"
-              value={specialty}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          <input
+            className={styles.input}
+            type="text"
+            name="specialty"
+            placeholder="Specialty"
+            value={specialty}
+            onChange={handleChange}
+            required
+          />
         )}
 
-        <button className={styles.button} type="submit">Register</button>
+        <button
+          className={styles.button}
+          type="submit"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Registering...' : 'Register'}
+        </button>
       </form>
       <p className={styles.text}>
         Already have an account? <Link href="/login" className={styles.link}>Login here</Link>

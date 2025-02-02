@@ -46,28 +46,8 @@ router.post(
   authController.login
 );
 
-// Route: POST /api/auth/forgot-password
-// router.post(
-//   "/forgot-password",
-//   [
-//     body("email")
-//       .isEmail()
-//       .normalizeEmail()
-//       .withMessage("Valid email is required"),
-//   ],
-//   authController.forgotPassword
-// );
 
-// Route: POST /api/auth/reset-password
-// router.put(
-//   "/reset-password",
-//   [
-//     body("newPassword")
-//       .isLength({ min: 6 })
-//       .withMessage("Password must be at least 6 characters long"),
-//   ],
-//   isAuth,
-//   authController.resetPassword
-// );
+router.get('/verify',isAuth,authController.verifyToken)
+
 
 module.exports = router;

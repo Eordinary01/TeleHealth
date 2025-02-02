@@ -79,6 +79,8 @@
 }
 
 
+
+
 @media (max-width: 768px) {
     .first {
         flex-direction: column;

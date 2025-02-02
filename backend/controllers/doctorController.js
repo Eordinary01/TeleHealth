@@ -3,7 +3,7 @@ const User = require('../models/user');
 
 exports.getDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().populate('user', 'name'); // Populate only the name field
+        const doctors = await Doctor.find().populate('user', 'name'); 
         res.json(doctors);
     } catch (error) {
         res.status(500).json({ message: 'Error Fetching doctors.. ', error });
@@ -50,6 +50,7 @@ exports.getDoctorById = async (req, res) => {
       id: doctor._id,
       name: doctor.user.name, 
       specialty: doctor.specialty,
+      
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching doctor', error });

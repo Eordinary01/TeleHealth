@@ -11,16 +11,42 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Ensure 'images' directory exists
+// Middleware Order is Important!
+// 1. Basic middleware
+app.use(bodyParser.json()); // Use this instead of express.json()
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// 2. CORS configuration
+// app.use(cors());
+
+
+// app.use((req, res, next) => {
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, DELETE, PATCH"
+//     );
+//     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//     next();
+//   });
+
+  const corsOptions = {
+    origin: ['http://localhost:3000'],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    credentials: true,
+    optionsSuccessStatus: 204
+  };
+
+  app.use(cors(corsOptions));
+
+// 3. Static files
 const imagesDir = path.join(__dirname, "images");
 if (!fs.existsSync(imagesDir)) {
   fs.mkdirSync(imagesDir, { recursive: true });
 }
+app.use("/images", express.static(imagesDir));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors());
-
+// 4. Multer configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, imagesDir);
@@ -42,36 +68,24 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-app.use(bodyParser.json());
+// 5. Apply multer middleware
 app.use(
   multer({
     storage: storage,
     fileFilter: fileFilter,
   }).single("image")
 );
-app.use("/images", express.static(imagesDir));
 
-// Set CORS headers
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS, PUT, DELETE, PATCH"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
+// Routes
+app.get("/", (req, res) => {
+  res.json({ message: "Hello Dev...." });
 });
 
-// Importing routes
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/aiChatBot");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
-
-app.get("/", (req, res) => {
-  res.json({ message: "Hello Dev...." });
-});
 
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
@@ -79,6 +93,7 @@ app.use("/chat", chatRoutes);
 app.use("/appointment", appointmentRoutes);
 app.use("/doctor", doctorRoutes);
 
+// Error handling
 app.use((error, req, res, next) => {
   console.error(error);
   const status = error.statusCode || 500;
@@ -87,6 +102,7 @@ app.use((error, req, res, next) => {
   res.status(status).json({ message: message, data: data });
 });
 
+// Database connection
 mongoose
   .connect(process.env.MONGO_ID)
   .then(() => {
